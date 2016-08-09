@@ -22,6 +22,7 @@ Description : Original version.
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#include <ctype.h>
 
 /**** macros declarations *****/
 
@@ -29,7 +30,8 @@ Description : Original version.
 #define FUNCTION_ERROR          0                             /* it staes that marks are invalid      */ 
 #define RED_COLOR          "\e[0;31m"                         /* it represents the ASCII code of red color */
 #define BLACK_COLOR        "\e[0;30m"                         /* it represents the ASCII code of black color */
-#define BLUE_COLOR         "\e[0;34m"                         /* it represents the ASCII code of blue  color */
+#define BLUE_COLOR         "\e[0;34m"                         /* it represents the ASCII code of blue  color */ 
+#define FILE_NOT_FOUND          2
 /***
  it defines the students record structure i.e name and marks 
 ***/
@@ -50,39 +52,104 @@ char  CheckForValid(int );
 void LogRecords(char[], char[]);
 char *  GetTimeStamp(void);
 char CheckMark(double );
+char InputFromFile(void);
 
 /**** head pointer declaration used with linked list *** */
 
-StudentType *head = NULL;                           /* To store the students records */
+StudentType *head = NULL;                           /* To store the students records  */
+long int Student_count = 0;
 
-
-void main(void)
+void main(int argc, char * argv[])
 {
     int  student_no;                               /* it represents the total number of students */
     int  no_highmarks;                             /* it represents the number of toppers that user wants */
-    char check_ret_value;                          /* it checks the whether the students marks are valid */
+    char ret_value;                          /* it checks the whether the students marks are valid */
     char *msg;                                     /* it sets the error message */
     char check_scanf;                              /* it checks whether scanf has accepted a value */
+    char input_type;
+    char c;
+    char *cmd_arg;
+    char *arg_cmp;
 
+   // printf("%s %d", argv[1], argc );
+
+    if (argc > 1)
+    {  
+       cmd_arg = argv[1];
+       arg_cmp = "-help";
+       
+       if(strcmp(cmd_arg, arg_cmp) == 0)
+       {  
+          FILE *help_file;
+          help_file = fopen("help", "r");
+         // printf("%s i am here", argv[1]);
+          if(help_file == NULL)
+          {
+             perror("error is:");
+          }
+          while(!feof(help_file))
+          {
+               c = fgetc(help_file);
+               printf("%c", c);
+          }
+         
+        
+          
+       }
+       exit(0);
+    }
+ 
+    printf("Student records are to be taken from file :[Y/N]");
+  
+    input_type = getchar();
+    
+
+    if(toupper(input_type) == 'Y')
+    {
+       printf("calling input from file");
+       ret_value = InputFromFile();
+ 
+      
+       
+       if(ret_value == FILE_NOT_FOUND);
+       {
+          msg = "input file not found";
+          goto EXIT;
+       }
+
+       if(Student_count == 0)
+       {
+          msg = "input file is empty";
+          goto EXIT;
+       }
+       
+       student_no = Student_count;
+       
+    }
+ 
+    if(toupper(input_type) == 'N')
+    {
+   
     printf("enter total no of students \n ");
+
 
     check_scanf = scanf ("%d", &student_no);
 
-    /* it checks whether user has entered the integer value */
+    /* checks whether user has entered the integer value */
 
     if(check_scanf != 1)
     {
-       msg = "enter a stundent number as an integer \n ";
+       msg = "enter a stundent number as an integer  ";
        goto EXIT;
     }
 
-    /* it calls a function CheckForValid()  to check whether entered data is valid */  
+    /* to check whether entered data is valid */  
 
-    check_ret_value = CheckForValid(student_no);
+    ret_value = CheckForValid(student_no);
 
-    if(check_ret_value == FUNCTION_ERROR)
+    if(ret_value == FUNCTION_ERROR)
     {
-       msg = " enter a valid no of students \n";
+       msg = "enter a valid no of students ";
 
        goto EXIT;
 
@@ -92,70 +159,77 @@ void main(void)
 
     check_scanf =  scanf("%d", &no_highmarks);
   
-    /* it checks whether user has entered the integer value */
+    /*checks whether user has entered the integer value */
       
     if(check_scanf != 1)
     {
-       msg = "enter a topper number as an integer \n ";
+       msg = "enter a topper number as an integer  ";
 
        goto EXIT;
     }
 
-    /* it calls a function CheckForValid()  to check whether entered data is valid */
+    /* checks whether entered data is valid */
 
-    check_ret_value =  CheckForValid(no_highmarks);
+    ret_value =  CheckForValid(no_highmarks);
 
-    if(check_ret_value == FUNCTION_ERROR)
+    if(ret_value == FUNCTION_ERROR)
     {
-        msg = " enter a valid no of toppers \n";
+        msg = "enter a valid no of toppers ";
 
         goto EXIT;
     }
 
-    /* it checks whether no of toppers are lesser than a total student no */ 
+    /* checks whether no of toppers are lesser than a total student no */ 
  
     if(student_no < no_highmarks)
     {
-        msg = " no of topper are greater than a total no of students \n";
+        msg = " no of topper are greater than a total no of students ";
 
         goto EXIT;
     }
 
     printf("enter student records i.e name and marks.\n ");
  
-    /* it calls TakeValus() to accept the student data */
+    /* accepts the student data */
   
-    check_ret_value = TakeValues(student_no);
+    ret_value = TakeValues(student_no);
    
-    /* it checks wether the student data are accepted correctly */
+    /* checks wether the student data are accepted correctly */
     
-    if (check_ret_value == FUNCTION_ERROR)
+    if (ret_value == FUNCTION_ERROR)
     {
 
-        msg = " marks are not valid \n";
+        msg = "marks are not valid ";
         
         goto EXIT;
         
     }
-    
-    /* calls the SortMarks() to sort the data according to student's marks */
+ 
+    }
+
+    else
+    {
+       msg = "entered option is in correct";
+       goto EXIT;
+    }
+    /* sorts the data according to student's marks */
    
     SortMarks(student_no);
 
-    /* calls the PrintResult() to print the toppers */
+    /* prints the toppers */
     
-    check_ret_value = PrintResult(no_highmarks);
+    ret_value = PrintResult(no_highmarks);
 
     /* checks whether toppers are printed correctly , if so then log the details in log file */
   
-    if(check_ret_value == FUNCTION_SUCCESS)
+    if(ret_value == FUNCTION_SUCCESS)
     { 
-       LogRecords("Info", "toppers are printed correctly \n");
+       LogRecords("Info", "   toppers are printed correctly ");
     }
 
   EXIT:	if(msg != NULL)
         {
-           printf("%s %s",RED_COLOR, msg);
+           printf("%s %s \n ",RED_COLOR, msg);
            LogRecords("Warning", msg);
            printf("%s", BLACK_COLOR);
            exit(0);
@@ -240,6 +314,60 @@ char TakeValues (int student_no)
 
     return FUNCTION_SUCCESS;
 
+}
+
+
+char InputFromFile()
+{  
+
+   char file_name[50];
+   char name[50];
+   StudentType *new_node, *current_node;
+   double mark;
+   FILE *input_file;
+   
+   printf("enter a file name. \n");
+   scanf("%s", file_name);
+   printf("%s", file_name);
+   input_file = fopen("temp", "r+");
+   printf("taking input from file \n");
+   
+   perror("and the error is");
+   
+   if(input_file == NULL)
+   {
+       return FILE_NOT_FOUND; 
+   }
+   while(feof(input_file))
+   {
+       printf("i am here");
+       new_node = (StudentType *) malloc(sizeof(StudentType));
+       fscanf(input_file, "%s %lf \n", name, &mark );
+       new_node->marks = mark;
+       printf("%lf", new_node->marks);
+       new_node->stud_name = (char *) malloc(sizeof(name)+1);
+       strcpy(new_node->stud_name, name);
+    
+       new_node->next = NULL;
+
+       if(head == NULL)
+       {
+           head = new_node;
+           current_node = new_node;
+       }
+       else
+       {
+           current_node->next = new_node;
+           current_node = new_node;
+       }
+       
+       Student_count++;
+ 
+   }
+  
+   return FUNCTION_SUCCESS;
+   
+   
 }
 
 /********************************************************
@@ -403,6 +531,9 @@ void LogRecords(char log_type[30], char log_description[100])
 {
    FILE *checkfile_log;                       /* creates a pointer to a file */
    char *time_stamp;                          /* stores a timestamp */
+   int i;
+   int index;
+   char buff[200], index_strn[30];                          
 
    checkfile_log = fopen("log.txt", "a+");
 
@@ -412,13 +543,30 @@ void LogRecords(char log_type[30], char log_description[100])
  
    if(ftell(checkfile_log) == 0)
    { 
-      fprintf(checkfile_log, "index   type   Description \n");
-      fprintf(checkfile_log, "%s                  %s      %s \n", time_stamp, log_type, log_description) ;
+      fprintf(checkfile_log, "index \t\t  timestamp \t\t\t\t\t type \t\t\t Description \n");
+      fprintf(checkfile_log, "%d    \t\t  %s                        %s \t\t   %s \n", 1, time_stamp, log_type, log_description) ;
    }
 
    else
-   {
-      fprintf(checkfile_log, "\n%s                  %s      %s ", time_stamp, log_type, log_description);
+   { 
+      fseek(checkfile_log, 0, SEEK_SET);
+
+      while(fscanf(checkfile_log, "%[^\n]\n", buff) > 0)
+      {
+        fscanf(checkfile_log, "%[^\n]\n", buff);  
+      }
+
+      for(i=0; buff[i] != ' '; i++)
+      {
+         index_strn[i] = buff[i];
+ 
+      }
+
+      index_strn[i] = '\0';
+
+      index = atoi(index_strn);        
+
+      fprintf(checkfile_log, "%d   \t\t %s                          %s           %s \n", ++index,  time_stamp, log_type, log_description);
 
    } 
 }
